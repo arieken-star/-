@@ -1,0 +1,822 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="ארנק שלי">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#d4a843">
+<meta name="description" content="ארנק דיגיטלי לשמירת תעודות וכרטיסים על המכשיר">
+<title>ארנק תעודות דיגיטלי</title>
+<link rel="manifest" href="./manifest.json">
+<link rel="apple-touch-icon" href="./icon.svg">
+<link rel="icon" type="image/svg+xml" href="./icon.svg">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800;900&display=swap');
+
+:root{
+  --bg:#0a0c12; --cb:#12151e; --cb2:#181c28; --cb3:#1e2336;
+  --br:rgba(255,255,255,0.08); --br2:rgba(255,255,255,0.14);
+  --tx:#eceef5; --tx2:#8890a8; --tx3:#4a5270;
+  --gold:#d4a843; --gold2:#f0cc70;
+  --r:20px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:'Heebo','Arial',sans-serif;background:var(--bg);color:var(--tx);min-height:100vh;display:flex;flex-direction:column;direction:rtl;overflow-x:hidden}
+
+/* ─── HEADER ─── */
+.hdr{position:sticky;top:0;z-index:200;background:rgba(10,12,18,.97);backdrop-filter:blur(20px);border-bottom:1px solid var(--br);padding:12px 16px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.logo{display:flex;align-items:center;gap:9px;flex-shrink:0}
+.logo-box{width:38px;height:38px;background:linear-gradient(135deg,var(--gold),var(--gold2));border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:19px;box-shadow:0 3px 14px rgba(212,168,67,.4)}
+.logo-txt{font-size:19px;font-weight:900;background:linear-gradient(135deg,var(--gold),var(--gold2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hdr-right{display:flex;align-items:center;gap:7px}
+.cnt-badge{background:var(--cb2);border:1px solid var(--br);border-radius:18px;padding:5px 12px;font-size:12px;color:var(--tx2);white-space:nowrap}
+.cnt-badge b{color:var(--gold)}
+.view-bar{display:flex;background:var(--cb2);border:1px solid var(--br);border-radius:12px;padding:3px;gap:2px}
+.vbtn{width:32px;height:28px;background:transparent;border:none;border-radius:9px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:15px;transition:background .15s}
+.vbtn.active{background:var(--gold);color:#1a0f00}
+.vbtn:not(.active){color:var(--tx2)}
+
+/* ─── MAIN ─── */
+.main{flex:1;padding:16px 13px 100px;max-width:600px;margin:0 auto;width:100%}
+.btn-add{width:100%;background:linear-gradient(135deg,var(--gold),var(--gold2));color:#1a0f00;border:none;border-radius:var(--r);padding:16px 20px;font-size:17px;font-weight:900;font-family:'Heebo','Arial',sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:14px;box-shadow:0 5px 22px rgba(212,168,67,.35);transition:transform .15s}
+.btn-add:active{transform:scale(.97)}
+.snote{display:flex;align-items:center;gap:8px;background:var(--cb);border:1px solid var(--br);border-radius:11px;padding:9px 13px;margin-bottom:16px;font-size:12px;color:var(--tx2)}
+.gdot{width:7px;height:7px;background:#3dba7e;border-radius:50%;flex-shrink:0;animation:blink 2.2s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* ─── DRAG HINT BAR ─── */
+.drag-hint{
+  display:none;
+  align-items:center;justify-content:center;gap:6px;
+  background:rgba(212,168,67,.1);
+  border:1px solid rgba(212,168,67,.3);
+  border-radius:10px;
+  padding:8px 14px;
+  margin-bottom:12px;
+  font-size:12px;color:var(--gold);
+  animation:fadein .3s ease;
+}
+.drag-hint.show{display:flex}
+@keyframes fadein{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
+
+/* ─── VIEW 1: BIG ─── */
+.view-big{display:flex;flex-direction:column;gap:13px}
+.card-big{
+  background:var(--cb);border:1px solid var(--br);border-radius:var(--r);
+  overflow:hidden;box-shadow:0 8px 28px rgba(0,0,0,.45);
+  animation:cin .28s ease both;
+  transition:box-shadow .2s,transform .2s,opacity .2s;
+  user-select:none;-webkit-user-select:none;
+}
+.card-big.dragging{
+  opacity:.55;transform:scale(.97);
+  box-shadow:0 20px 50px rgba(0,0,0,.7);
+  border-color:var(--gold);
+  z-index:10;
+}
+.card-big.drag-over{border-color:var(--gold2);box-shadow:0 0 0 2px var(--gold2)}
+@keyframes cin{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.card-top-bar{height:4px}
+.card-head{display:flex;align-items:center;justify-content:space-between;padding:13px 14px 11px;border-bottom:1px solid var(--br)}
+.card-lft{display:flex;align-items:center;gap:10px}
+.card-ico{width:46px;height:46px;border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:23px;flex-shrink:0}
+.card-nm{font-size:16px;font-weight:800}
+.card-sb{font-size:11px;color:var(--tx2);margin-top:2px}
+.card-acts{display:flex;align-items:center;gap:6px}
+.ibtn{width:34px;height:34px;background:var(--cb2);border:1px solid var(--br);border-radius:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:15px;color:var(--tx2);transition:all .15s}
+.ibtn:active{transform:scale(.86);background:rgba(255,255,255,.07)}
+
+/* drag handle */
+.drag-handle{
+  width:34px;height:34px;
+  background:var(--cb2);border:1px solid var(--br);border-radius:10px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:16px;color:var(--tx3);cursor:grab;
+  flex-shrink:0;
+  touch-action:none;
+}
+.drag-handle:active{cursor:grabbing;color:var(--gold)}
+
+.img-zone{background:var(--cb2);position:relative;cursor:pointer}
+.img-zone img{width:100%;display:block;max-height:400px;object-fit:contain;background:#060709}
+.zoom-hint{position:absolute;bottom:9px;left:9px;background:rgba(0,0,0,.65);backdrop-filter:blur(8px);border-radius:7px;padding:3px 9px;font-size:11px;color:rgba(255,255,255,.6);pointer-events:none}
+.no-img{padding:28px 16px;display:flex;flex-direction:column;align-items:center;gap:8px}
+.no-img-ico{font-size:34px;opacity:.35}
+.no-img-tx{font-size:13px;color:var(--tx2);text-align:center;line-height:1.65}
+.no-img-tx strong{color:var(--gold)}
+.notes-sec{padding:11px 13px;border-top:1px solid var(--br)}
+.notes-lbl{font-size:11px;color:var(--tx3);margin-bottom:5px;font-weight:600}
+.notes-dsp{font-size:13px;color:var(--tx2);line-height:1.6;cursor:pointer;min-height:18px}
+.notes-dsp.enote{color:var(--tx3);font-style:italic}
+.notes-inp{width:100%;background:var(--bg);border:1px solid var(--br2);border-radius:9px;color:var(--tx);font-family:'Heebo','Arial',sans-serif;font-size:13px;padding:8px 10px;resize:none;outline:none;line-height:1.6;display:none}
+.notes-inp:focus{border-color:var(--gold)}
+.notes-sbtn{display:none;margin-top:6px;background:var(--gold);color:#1a0f00;border:none;border-radius:8px;padding:6px 14px;font-size:13px;font-weight:700;font-family:'Heebo','Arial',sans-serif;cursor:pointer}
+
+/* ─── VIEW 2: GRID ─── */
+.view-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.card-grid{background:var(--cb);border:1px solid var(--br);border-radius:16px;overflow:hidden;box-shadow:0 4px 18px rgba(0,0,0,.4);animation:cin .28s ease both;display:flex;flex-direction:column;transition:box-shadow .2s,opacity .2s;user-select:none;-webkit-user-select:none}
+.card-grid.dragging{opacity:.5;border-color:var(--gold)}
+.card-grid.drag-over{border-color:var(--gold2);box-shadow:0 0 0 2px var(--gold2)}
+.card-grid-top{height:3px}
+.card-grid-body{padding:14px 10px 10px;display:flex;flex-direction:column;align-items:center;gap:6px;flex:1}
+.card-grid-ico{font-size:32px}
+.card-grid-nm{font-size:13px;font-weight:800;text-align:center;line-height:1.3}
+.card-grid-img{width:100%;aspect-ratio:3/2;object-fit:contain;background:#060709;display:block}
+.card-grid-nimg{width:100%;aspect-ratio:3/2;background:var(--cb2);display:flex;align-items:center;justify-content:center;font-size:22px;opacity:.5}
+.card-grid-acts{display:flex;justify-content:center;gap:6px;padding:8px 10px;border-top:1px solid var(--br)}
+.card-grid-acts .ibtn{width:30px;height:30px;font-size:14px}
+
+/* ─── VIEW 3: LIST ─── */
+.view-list{display:flex;flex-direction:column;gap:6px}
+.card-list{background:var(--cb);border:1px solid var(--br);border-radius:13px;display:flex;align-items:center;gap:11px;padding:12px 14px;animation:cin .2s ease both;transition:background .15s,opacity .2s;user-select:none;-webkit-user-select:none}
+.card-list.dragging{opacity:.5;border-color:var(--gold)}
+.card-list.drag-over{border-color:var(--gold2);box-shadow:0 0 0 2px var(--gold2)}
+.card-list-ico{width:40px;height:40px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:21px;flex-shrink:0}
+.card-list-info{flex:1;min-width:0}
+.card-list-nm{font-size:15px;font-weight:700}
+.card-list-sb{font-size:11px;color:var(--tx2);margin-top:2px}
+.card-list-acts{display:flex;gap:5px;flex-shrink:0;align-items:center}
+.card-list-acts .ibtn{width:32px;height:32px;font-size:14px}
+.card-list-acts .drag-handle{width:32px;height:32px;font-size:15px}
+
+/* ─── EMPTY / LOADER / VIEWER / SHEET / TOAST (same as before) ─── */
+.empty{text-align:center;padding:64px 20px}
+.empty-ico{font-size:60px;margin-bottom:16px;opacity:.28}
+.empty p{font-size:15px;color:var(--tx2);line-height:1.7}
+
+.loader{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;z-index:9999;transition:opacity .4s}
+.loader.fade{opacity:0;pointer-events:none}
+.loader-ico{font-size:52px;animation:pulse 1.4s ease infinite}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}
+.loader-tx{font-size:15px;color:var(--tx2)}
+
+.viewer{display:none;position:fixed;inset:0;background:#000;z-index:800;flex-direction:column;overflow:hidden}
+.viewer.open{display:flex}
+.vtbar{position:absolute;top:0;left:0;right:0;padding:13px 14px;display:flex;align-items:center;justify-content:space-between;background:linear-gradient(to bottom,rgba(0,0,0,.82),transparent);z-index:10}
+.vt-title{font-size:14px;font-weight:700;color:#fff}
+.vt-btns{display:flex;gap:7px}
+.vt-btn{width:37px;height:37px;background:rgba(255,255,255,.12);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.2);border-radius:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:17px;color:#fff}
+.vt-btn:active{background:rgba(255,255,255,.28)}
+.vwrap{flex:1;display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative;touch-action:none}
+.vimg{max-width:100%;max-height:100%;object-fit:contain;transform-origin:center;transition:none;user-select:none;-webkit-user-select:none;pointer-events:none}
+.vhint{position:absolute;bottom:18px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.6);backdrop-filter:blur(8px);border-radius:20px;padding:6px 16px;font-size:11px;color:rgba(255,255,255,.6);white-space:nowrap;pointer-events:none;animation:fo 3.5s ease forwards}
+@keyframes fo{0%,55%{opacity:1}100%{opacity:0}}
+
+.soverlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:400;backdrop-filter:blur(5px);align-items:flex-end;justify-content:center}
+.soverlay.open{display:flex}
+.sheet{background:var(--cb);border:1px solid var(--br2);border-radius:26px 26px 0 0;padding:18px 15px 44px;width:100%;max-width:600px;animation:sup .27s cubic-bezier(.34,1.56,.64,1)}
+@keyframes sup{from{transform:translateY(100%);opacity:0}to{transform:translateY(0);opacity:1}}
+.sh-handle{width:40px;height:4px;background:var(--br2);border-radius:2px;margin:0 auto 18px}
+.sh-title{font-size:18px;font-weight:900;margin-bottom:16px;background:linear-gradient(135deg,var(--gold),var(--gold2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.custom-row{display:flex;gap:8px;margin-bottom:16px;align-items:center}
+.custom-inp{flex:1;background:var(--bg);border:1px solid var(--br2);border-radius:11px;color:var(--tx);font-family:'Heebo','Arial',sans-serif;font-size:14px;padding:10px 13px;outline:none}
+.custom-inp:focus{border-color:var(--gold)}
+.custom-inp::placeholder{color:var(--tx3)}
+.custom-add-btn{background:var(--gold);color:#1a0f00;border:none;border-radius:11px;padding:10px 16px;font-size:14px;font-weight:800;font-family:'Heebo','Arial',sans-serif;cursor:pointer;white-space:nowrap}
+.custom-add-btn:active{opacity:.8}
+.custom-label{font-size:12px;color:var(--tx3);margin-bottom:8px}
+.tgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;max-height:52vh;overflow-y:auto;padding-bottom:4px}
+.tcard{background:var(--cb2);border:1px solid var(--br);border-radius:13px;padding:13px 8px 11px;cursor:pointer;text-align:center;font-family:'Heebo','Arial',sans-serif;color:var(--tx);transition:border-color .15s,transform .1s}
+.tcard:active{transform:scale(.93);border-color:var(--gold)}
+.tcard-e{font-size:27px;margin-bottom:5px}
+.tcard-n{font-size:12px;font-weight:700;line-height:1.3}
+.sh-cancel{width:100%;margin-top:11px;background:transparent;border:1px solid var(--br);color:var(--tx2);border-radius:12px;padding:12px;font-size:15px;cursor:pointer;font-family:'Heebo','Arial',sans-serif}
+.sh-cancel:active{background:rgba(255,255,255,.04)}
+
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(76px);background:var(--cb2);border:1px solid var(--gold);color:var(--gold2);padding:11px 22px;border-radius:28px;font-size:14px;font-weight:700;z-index:700;transition:transform .32s cubic-bezier(.34,1.56,.64,1);white-space:nowrap;pointer-events:none}
+.toast.show{transform:translateX(-50%) translateY(0)}
+
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--br2);border-radius:4px}
+</style>
+</head>
+<body>
+
+<div class="loader" id="loader">
+  <div class="loader-ico">👜</div>
+  <div class="loader-tx">טוען ארנק דיגיטלי…</div>
+</div>
+
+<div class="hdr">
+  <div class="logo">
+    <div class="logo-box">👜</div>
+    <div class="logo-txt">ארנק שלי</div>
+  </div>
+  <div class="hdr-right">
+    <div class="cnt-badge">סה"כ <b id="cnt">0</b></div>
+    <div class="view-bar">
+      <button class="vbtn" id="vb1" title="כרטיסים גדולים" onclick="setView(1)">☰</button>
+      <button class="vbtn" id="vb2" title="רשת"             onclick="setView(2)">⊞</button>
+      <button class="vbtn" id="vb3" title="רשימה"           onclick="setView(3)">≡</button>
+    </div>
+  </div>
+</div>
+
+<div class="main">
+  <div class="snote">
+    <div class="gdot"></div>
+    <span>נשמר <strong>על המכשיר בלבד</strong> — ללא שמירה בענן</span>
+  </div>
+  <button class="btn-add" id="btnAdd">
+    <span style="font-size:21px">＋</span> הוסף תעודה או כרטיס
+  </button>
+  <!-- רמז גרירה — מוצג רק כשיש תעודות -->
+  <div class="drag-hint" id="dragHint">
+    <span>☰</span> לחץ לחיצה ארוכה על תעודה כדי לגרור ולסדר מחדש
+  </div>
+  <div id="cardsList"></div>
+</div>
+
+<!-- מציג תמונה מלא -->
+<div class="viewer" id="viewer">
+  <div class="vtbar">
+    <div class="vt-title" id="vtTitle">תעודה</div>
+    <div class="vt-btns">
+      <button class="vt-btn" id="vbRL">↺</button>
+      <button class="vt-btn" id="vbRR">↻</button>
+      <button class="vt-btn" id="vbZI">＋</button>
+      <button class="vt-btn" id="vbZO">－</button>
+      <button class="vt-btn" id="vbCL">✕</button>
+    </div>
+  </div>
+  <div class="vwrap" id="vwrap">
+    <img class="vimg" id="vimg" src="" alt="">
+    <div class="vhint">צבוט להגדלה • גרור להזזה • כפתורים לסיבוב</div>
+  </div>
+</div>
+
+<!-- תפריט הוספה -->
+<div class="soverlay" id="soverlay" onclick="sovClick(event)">
+  <div class="sheet">
+    <div class="sh-handle"></div>
+    <div class="sh-title">📋 הוסף תעודה</div>
+    <div class="custom-label">✏️ הוסף תעודה עם שם שאתה קובע:</div>
+    <div class="custom-row">
+      <input class="custom-inp" id="customNameInp" type="text" placeholder="לדוגמה: ארנק, מנוי חדר כושר…" maxlength="40">
+      <button class="custom-add-btn" onclick="addCustomCard()">הוסף</button>
+    </div>
+    <div class="sh-title" style="font-size:15px;margin-bottom:12px">או בחר מהרשימה:</div>
+    <div class="tgrid" id="tgrid"></div>
+    <button class="sh-cancel" onclick="closeSheet()">ביטול</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<input type="file" id="fileInput" accept="image/*" style="display:none">
+
+<script>
+/* ═══════════════════════════════════════
+   TYPES
+═══════════════════════════════════════ */
+var T=[
+  {id:'id',      e:'🪪',n:'תעודת זהות',     c:'#3d7ed9',bg:'rgba(61,126,217,.15)'},
+  {id:'license', e:'🚗',n:'רישיון נהיגה',   c:'#e07a2a',bg:'rgba(224,122,42,.15)'},
+  {id:'boat',    e:'⛵',n:'רישיון משיט',     c:'#2ab8d9',bg:'rgba(42,184,217,.15)'},
+  {id:'hmo',     e:'💊',n:'קופת חולים',     c:'#3dba7e',bg:'rgba(61,186,126,.15)'},
+  {id:'passport',e:'✈️',n:'דרכון',           c:'#7c5cbf',bg:'rgba(124,92,191,.15)'},
+  {id:'senior',  e:'⭐',n:'אזרח ותיק',       c:'#d4a843',bg:'rgba(212,168,67,.15)'},
+  {id:'army',    e:'🎖️',n:'תעודת שחרור',    c:'#5e9e4a',bg:'rgba(94,158,74,.15)'},
+  {id:'credit',  e:'💳',n:'כרטיס אשראי',    c:'#c4943a',bg:'rgba(196,148,58,.15)'},
+  {id:'insurance',e:'🛡️',n:'ביטוח רכב',    c:'#c45050',bg:'rgba(196,80,80,.15)'},
+  {id:'health',  e:'🏥',n:'ביטוח בריאות',   c:'#e05070',bg:'rgba(224,80,112,.15)'},
+  {id:'student', e:'🎓',n:'תעודת סטודנט',   c:'#9b5cbf',bg:'rgba(155,92,191,.15)'},
+  {id:'bizcard', e:'👔',n:'כרטיס ביקור',    c:'#4a7abf',bg:'rgba(74,122,191,.15)'},
+  {id:'loyalty', e:'🏆',n:'כרטיס מועדון',   c:'#bf9a2a',bg:'rgba(191,154,42,.15)'},
+  {id:'bus',     e:'🚌',n:'כרטיס אוטובוס',  c:'#3aab8a',bg:'rgba(58,171,138,.15)'},
+  {id:'vaccine', e:'💉',n:'תעודת חיסון',    c:'#4ab0d4',bg:'rgba(74,176,212,.15)'},
+  {id:'other',   e:'📄',n:'אחר',             c:'#7a8aaa',bg:'rgba(122,138,170,.15)'}
+];
+
+/* ═══════════════════════════════════════
+   STATE & DB
+═══════════════════════════════════════ */
+var db=null, cards=[], pendingId=null, viewMode=1;
+var DB_NAME='DigitalWalletHE3', ST='cards';
+
+// ── שמירת מצב תצוגה ב-localStorage ──
+function loadViewMode(){
+  try{ var v=parseInt(localStorage.getItem('walletView')||'1'); return (v>=1&&v<=3)?v:1; }
+  catch(e){ return 1; }
+}
+function saveViewMode(n){
+  try{ localStorage.setItem('walletView',String(n)); }catch(e){}
+}
+
+function openDB(){
+  return new Promise(function(ok,fail){
+    var r=indexedDB.open(DB_NAME,1);
+    r.onupgradeneeded=function(e){
+      var d=e.target.result;
+      if(!d.objectStoreNames.contains(ST)) d.createObjectStore(ST,{keyPath:'id'});
+    };
+    r.onsuccess=function(e){db=e.target.result;ok()};
+    r.onerror=function(e){fail(e.target.error)};
+  });
+}
+function dbAll(){
+  return new Promise(function(ok,fail){
+    var r=db.transaction(ST,'readonly').objectStore(ST).getAll();
+    r.onsuccess=function(e){ok(e.target.result||[])};
+    r.onerror=function(e){fail(e.target.error)};
+  });
+}
+function dbPut(c){
+  return new Promise(function(ok,fail){
+    var r=db.transaction(ST,'readwrite').objectStore(ST).put(c);
+    r.onsuccess=function(){ok()};
+    r.onerror=function(e){fail(e.target.error)};
+  });
+}
+function dbDel(id){
+  return new Promise(function(ok,fail){
+    var r=db.transaction(ST,'readwrite').objectStore(ST).delete(id);
+    r.onsuccess=function(){ok()};
+    r.onerror=function(e){fail(e.target.error)};
+  });
+}
+
+/* ═══════════════════════════════════════
+   HELPERS
+═══════════════════════════════════════ */
+function ftype(tid){
+  for(var i=0;i<T.length;i++){if(T[i].id===tid)return T[i];}
+  return T[T.length-1];
+}
+function gcard(id){
+  for(var i=0;i<cards.length;i++){if(cards[i].id===id)return cards[i];}
+  return null;
+}
+function esc(s){return s?s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'):''}
+function ctype(card){
+  return card.custom
+    ? {e:'📄',n:card.customName,c:card.customColor||'#7a8aaa',bg:'rgba(122,138,170,.15)'}
+    : ftype(card.typeId);
+}
+
+/* ═══════════════════════════════════════
+   INIT
+═══════════════════════════════════════ */
+function init(){
+  viewMode = loadViewMode();
+  buildTypeGrid();
+  openDB().then(dbAll).then(function(rows){
+    cards = rows;
+    cards.sort(function(a,b){return (a.order||a.ts)-(b.order||b.ts)});
+    render();
+    fadeLoader();
+  }).catch(function(){
+    cards=[];render();fadeLoader();
+  });
+}
+function fadeLoader(){
+  var l=document.getElementById('loader');
+  setTimeout(function(){
+    l.classList.add('fade');
+    setTimeout(function(){l.style.display='none'},400);
+  },600);
+}
+
+/* ═══════════════════════════════════════
+   VIEW MODE  — זוכר בין פתיחות
+═══════════════════════════════════════ */
+function setView(n){
+  viewMode=n;
+  saveViewMode(n);          // ← שומר ב-localStorage
+  updateViewBtns();
+  render();
+}
+function updateViewBtns(){
+  for(var i=1;i<=3;i++){
+    document.getElementById('vb'+i).classList.toggle('active',i===viewMode);
+  }
+}
+
+/* ═══════════════════════════════════════
+   RENDER
+═══════════════════════════════════════ */
+function render(){
+  updateViewBtns();
+  var el=document.getElementById('cardsList');
+  document.getElementById('cnt').textContent=cards.length;
+  // הצג/הסתר רמז גרירה
+  document.getElementById('dragHint').classList.toggle('show', cards.length>1);
+  if(!cards.length){
+    el.innerHTML='<div class="empty"><div class="empty-ico">🗂️</div><p>אין תעודות עדיין.<br>לחץ על הכפתור הצהוב להוספה.</p></div>';
+    return;
+  }
+  if(viewMode===1) renderBig(el);
+  else if(viewMode===2) renderGrid(el);
+  else renderList(el);
+  attachActions(el);
+  attachDrag(el);
+}
+
+/* ─── BIG ─── */
+function renderBig(el){
+  el.className='view-big'; el.innerHTML='';
+  cards.forEach(function(card,i){
+    var t=ctype(card);
+    var d=document.createElement('div');
+    d.className='card-big'; d.dataset.id=card.id; d.style.animationDelay=(i*.05)+'s';
+    var imgH=card.image
+      ? '<img src="'+card.image+'" alt="'+esc(t.n)+'" loading="lazy"><div class="zoom-hint">🔍 לחץ לזום + סיבוב</div>'
+      : '<div class="no-img"><div class="no-img-ico">📷</div><div class="no-img-tx">לחץ לצילום או בחירה מהגלריה<br><strong>ברזולוציה גבוהה</strong></div></div>';
+    var note=card.note||'';
+    d.innerHTML=
+      '<div class="card-top-bar" style="background:linear-gradient(90deg,'+t.c+','+t.c+'77)"></div>'+
+      '<div class="card-head">'+
+        '<div class="card-lft">'+
+          '<div class="drag-handle" title="גרור לשינוי סדר">⠿</div>'+
+          '<div class="card-ico" style="background:'+t.bg+'">'+t.e+'</div>'+
+          '<div>'+
+            '<div class="card-nm" style="color:'+t.c+'">'+esc(t.n)+'</div>'+
+            '<div class="card-sb">'+(card.image?'📸 שמורה':'אין תמונה עדיין')+'</div>'+
+          '</div>'+
+        '</div>'+
+        '<div class="card-acts">'+
+          '<button class="ibtn" data-a="photo" data-id="'+card.id+'">📷</button>'+
+          '<button class="ibtn" data-a="del"   data-id="'+card.id+'">🗑️</button>'+
+        '</div>'+
+      '</div>'+
+      '<div class="img-zone" data-a="view" data-id="'+card.id+'">'+imgH+'</div>'+
+      '<div class="notes-sec">'+
+        '<div class="notes-lbl">📝 הערות</div>'+
+        '<div class="notes-dsp '+(note?'':'enote')+'" data-a="enote" data-id="'+card.id+'">'+
+          (note?esc(note):'לחץ להוספת הערה…')+'</div>'+
+        '<textarea class="notes-inp" rows="3" placeholder="הוסף הערה חופשית…">'+esc(note)+'</textarea>'+
+        '<button class="notes-sbtn" data-a="snote" data-id="'+card.id+'">💾 שמור הערה</button>'+
+      '</div>';
+    el.appendChild(d);
+  });
+}
+
+/* ─── GRID ─── */
+function renderGrid(el){
+  el.className='view-grid'; el.innerHTML='';
+  cards.forEach(function(card,i){
+    var t=ctype(card);
+    var d=document.createElement('div');
+    d.className='card-grid'; d.dataset.id=card.id; d.style.animationDelay=(i*.04)+'s';
+    var imgH=card.image
+      ? '<img class="card-grid-img" src="'+card.image+'" alt="'+esc(t.n)+'" loading="lazy">'
+      : '<div class="card-grid-nimg">📷</div>';
+    d.innerHTML=
+      '<div class="card-grid-top" style="background:'+t.c+'"></div>'+
+      '<div class="card-grid-body">'+
+        '<div class="card-grid-ico">'+t.e+'</div>'+
+        '<div class="card-grid-nm" style="color:'+t.c+'">'+esc(t.n)+'</div>'+
+      '</div>'+
+      imgH+
+      '<div class="card-grid-acts">'+
+        '<button class="ibtn" data-a="view"  data-id="'+card.id+'" title="פתח">🔍</button>'+
+        '<button class="ibtn" data-a="photo" data-id="'+card.id+'" title="תמונה">📷</button>'+
+        '<button class="ibtn" data-a="del"   data-id="'+card.id+'" title="מחק">🗑️</button>'+
+      '</div>';
+    el.appendChild(d);
+  });
+}
+
+/* ─── LIST ─── */
+function renderList(el){
+  el.className='view-list'; el.innerHTML='';
+  cards.forEach(function(card,i){
+    var t=ctype(card);
+    var d=document.createElement('div');
+    d.className='card-list'; d.dataset.id=card.id; d.style.animationDelay=(i*.03)+'s';
+    d.innerHTML=
+      '<div class="card-list-ico" style="background:'+t.bg+'">'+t.e+'</div>'+
+      '<div class="card-list-info">'+
+        '<div class="card-list-nm" style="color:'+t.c+'">'+esc(t.n)+'</div>'+
+        '<div class="card-list-sb">'+(card.image?'📸 שמורה':'אין תמונה')+'</div>'+
+      '</div>'+
+      '<div class="card-list-acts">'+
+        '<button class="ibtn" data-a="view"  data-id="'+card.id+'" title="פתח">🔍</button>'+
+        '<button class="ibtn" data-a="photo" data-id="'+card.id+'" title="תמונה">📷</button>'+
+        '<button class="ibtn" data-a="del"   data-id="'+card.id+'" title="מחק">🗑️</button>'+
+        '<div class="drag-handle" title="גרור לשינוי סדר">⠿</div>'+
+      '</div>';
+    el.appendChild(d);
+  });
+}
+
+/* ═══════════════════════════════════════
+   ACTION EVENTS
+═══════════════════════════════════════ */
+function attachActions(el){
+  el.querySelectorAll('[data-a]').forEach(function(btn){
+    btn.addEventListener('click',function(e){
+      e.stopPropagation();
+      var a=this.getAttribute('data-a');
+      var id=parseInt(this.getAttribute('data-id'));
+      if(a==='photo')  trigPhoto(id);
+      else if(a==='del')    delCard(id);
+      else if(a==='view')   viewImg(id);
+      else if(a==='enote')  openNote(id);
+      else if(a==='snote')  saveNote(id);
+    });
+  });
+}
+
+/* ═══════════════════════════════════════
+   DRAG & DROP — לחיצה ארוכה לגרירה
+═══════════════════════════════════════ */
+var dnd={
+  dragging:null,   // אלמנט DOM שנגרר
+  dragId:null,     // id של הכרטיס
+  overId:null,     // id של הכרטיס שמעליו
+  longTimer:null,  // טיימר לחיצה ארוכה
+  startX:0, startY:0,
+  moved:false
+};
+var LONG_PRESS_MS = 650; // מילישניות ללחיצה ארוכה
+
+function attachDrag(container){
+  var items=container.querySelectorAll('[data-id]');
+  items.forEach(function(el){
+    // מגע — לחיצה ארוכה
+    el.addEventListener('touchstart', onDragTouchStart, {passive:true});
+    el.addEventListener('touchmove',  onDragTouchMove,  {passive:false});
+    el.addEventListener('touchend',   onDragTouchEnd,   {passive:true});
+    // עכבר — לחיצה ארוכה
+    el.addEventListener('mousedown',  onDragMouseDown);
+  });
+}
+
+/* ── TOUCH ── */
+function onDragTouchStart(e){
+  var el=this;
+  dnd.startX=e.touches[0].clientX;
+  dnd.startY=e.touches[0].clientY;
+  dnd.moved=false;
+  dnd.longTimer=setTimeout(function(){
+    startDrag(el);
+  }, LONG_PRESS_MS);
+}
+function onDragTouchMove(e){
+  if(!dnd.longTimer&&!dnd.dragging) return;
+  var dx=e.touches[0].clientX-dnd.startX;
+  var dy=e.touches[0].clientY-dnd.startY;
+  if(Math.abs(dx)>10||Math.abs(dy)>10){
+    if(!dnd.dragging){clearTimeout(dnd.longTimer);dnd.longTimer=null;return;}
+    dnd.moved=true;
+    e.preventDefault();
+    // מציאת הפריט שמתחת
+    var el=document.elementFromPoint(e.touches[0].clientX, e.touches[0].clientY);
+    var target=el&&el.closest('[data-id]');
+    updateOverTarget(target);
+  }
+}
+function onDragTouchEnd(e){
+  clearTimeout(dnd.longTimer); dnd.longTimer=null;
+  if(dnd.dragging) finishDrag();
+}
+
+/* ── MOUSE ── */
+function onDragMouseDown(e){
+  if(e.button!==0) return;
+  var el=this;
+  dnd.startX=e.clientX; dnd.startY=e.clientY; dnd.moved=false;
+  dnd.longTimer=setTimeout(function(){ startDrag(el); }, LONG_PRESS_MS);
+  document.addEventListener('mousemove', onDragMouseMove);
+  document.addEventListener('mouseup',   onDragMouseUp);
+}
+function onDragMouseMove(e){
+  if(!dnd.longTimer&&!dnd.dragging){document.removeEventListener('mousemove',onDragMouseMove);return;}
+  var dx=e.clientX-dnd.startX, dy=e.clientY-dnd.startY;
+  if(Math.abs(dx)>10||Math.abs(dy)>10){
+    if(!dnd.dragging){clearTimeout(dnd.longTimer);dnd.longTimer=null;return;}
+    dnd.moved=true;
+    var el=document.elementFromPoint(e.clientX, e.clientY);
+    var target=el&&el.closest('[data-id]');
+    updateOverTarget(target);
+  }
+}
+function onDragMouseUp(){
+  clearTimeout(dnd.longTimer); dnd.longTimer=null;
+  document.removeEventListener('mousemove',onDragMouseMove);
+  document.removeEventListener('mouseup',  onDragMouseUp);
+  if(dnd.dragging) finishDrag();
+}
+
+/* ── DRAG LOGIC ── */
+function startDrag(el){
+  dnd.dragging=el;
+  dnd.dragId=parseInt(el.dataset.id);
+  el.classList.add('dragging');
+  vibrate();
+  toast('⠿ גרור למעלה או למטה לשינוי סדר');
+}
+
+function updateOverTarget(target){
+  // נקה סימון ישן
+  document.querySelectorAll('.drag-over').forEach(function(e){e.classList.remove('drag-over')});
+  if(!target||!target.dataset.id) return;
+  var overId=parseInt(target.dataset.id);
+  if(overId===dnd.dragId) return;
+  dnd.overId=overId;
+  target.classList.add('drag-over');
+}
+
+function finishDrag(){
+  var draggingEl=dnd.dragging;
+  var dragId=dnd.dragId;
+  var overId=dnd.overId;
+  // נקה מחלקות
+  if(draggingEl) draggingEl.classList.remove('dragging');
+  document.querySelectorAll('.drag-over').forEach(function(e){e.classList.remove('drag-over')});
+  dnd.dragging=null; dnd.dragId=null; dnd.overId=null;
+
+  if(!dnd.moved||overId===null||overId===dragId){return;}
+
+  // מצא אינדקסים
+  var fromIdx=-1, toIdx=-1;
+  for(var i=0;i<cards.length;i++){
+    if(cards[i].id===dragId)  fromIdx=i;
+    if(cards[i].id===overId)  toIdx=i;
+  }
+  if(fromIdx<0||toIdx<0||fromIdx===toIdx) return;
+
+  // הזז בתוך המערך
+  var moved=cards.splice(fromIdx,1)[0];
+  cards.splice(toIdx,0,moved);
+
+  // עדכן שדה order ושמור
+  var now=Date.now();
+  cards.forEach(function(c,i){
+    c.order=now+i;
+    dbPut(c).catch(function(){});
+  });
+  render();
+  toast('✅ הסדר עודכן');
+}
+
+function vibrate(){
+  try{if(navigator.vibrate) navigator.vibrate(40);}catch(e){}
+}
+
+/* ═══════════════════════════════════════
+   ADD / DELETE
+═══════════════════════════════════════ */
+function buildTypeGrid(){
+  var g=document.getElementById('tgrid');
+  T.forEach(function(t){
+    var b=document.createElement('button');
+    b.className='tcard';
+    b.innerHTML='<div class="tcard-e">'+t.e+'</div><div class="tcard-n">'+t.n+'</div>';
+    b.style.borderColor=t.c+'44';
+    b.addEventListener('click',function(){addCard(t.id,false,null)});
+    g.appendChild(b);
+  });
+}
+function addCustomCard(){
+  var name=document.getElementById('customNameInp').value.trim();
+  if(!name){document.getElementById('customNameInp').focus();return;}
+  addCard('other',true,name);
+  document.getElementById('customNameInp').value='';
+}
+function addCard(typeId,isCustom,customName){
+  var t=ftype(typeId);
+  var now=Date.now();
+  var card={
+    id:now, typeId:typeId,
+    custom:!!isCustom, customName:customName||null, customColor:t.c,
+    image:null, note:'', ts:now,
+    order: now + cards.length
+  };
+  cards.push(card);
+  dbPut(card).catch(function(){});
+  closeSheet(); render();
+  var lbl=isCustom?customName:t.n;
+  toast((isCustom?'📄':t.e)+' '+lbl+' נוספה!');
+}
+function delCard(id){
+  var card=gcard(id); if(!card)return;
+  var nm=card.custom?card.customName:ftype(card.typeId).n;
+  if(!confirm('למחוק את "'+nm+'"?'))return;
+  cards=cards.filter(function(c){return c.id!==id});
+  dbDel(id).catch(function(){});
+  render(); toast('🗑️ '+nm+' נמחקה');
+}
+
+/* ═══════════════════════════════════════
+   PHOTO
+═══════════════════════════════════════ */
+function trigPhoto(id){pendingId=id;document.getElementById('fileInput').click()}
+document.getElementById('fileInput').addEventListener('change',function(e){
+  var f=e.target.files[0]; if(!f||pendingId===null)return;
+  var pid=pendingId;
+  var r=new FileReader();
+  r.onload=function(ev){
+    var c=gcard(pid); if(!c)return;
+    c.image=ev.target.result;
+    dbPut(c).catch(function(){});
+    render(); toast('📸 התמונה נשמרה!'); pendingId=null;
+  };
+  r.readAsDataURL(f); e.target.value='';
+});
+
+/* ═══════════════════════════════════════
+   VIEWER
+═══════════════════════════════════════ */
+var vs={s:1,r:0,tx:0,ty:0},drag={on:false},pinch={on:false};
+function viewImg(id){
+  var c=gcard(id); if(!c)return;
+  if(!c.image){trigPhoto(id);return}
+  var t=ctype(c);
+  document.getElementById('vtTitle').textContent=t.e+' '+t.n;
+  document.getElementById('vimg').src=c.image;
+  vs={s:1,r:0,tx:0,ty:0}; applyT();
+  document.getElementById('viewer').classList.add('open');
+}
+function applyT(){
+  document.getElementById('vimg').style.transform=
+    'translate('+vs.tx+'px,'+vs.ty+'px) rotate('+vs.r+'deg) scale('+vs.s+')';
+}
+document.getElementById('vbCL').addEventListener('click',function(){document.getElementById('viewer').classList.remove('open')});
+document.getElementById('vbRL').addEventListener('click',function(){vs.r-=90;applyT()});
+document.getElementById('vbRR').addEventListener('click',function(){vs.r+=90;applyT()});
+document.getElementById('vbZI').addEventListener('click',function(){vs.s=Math.min(vs.s+0.4,5);applyT()});
+document.getElementById('vbZO').addEventListener('click',function(){vs.s=Math.max(vs.s-0.4,.5);applyT()});
+var vw=document.getElementById('vwrap');
+vw.addEventListener('mousedown',function(e){drag.on=true;drag.sx=e.clientX;drag.sy=e.clientY;drag.stx=vs.tx;drag.sty=vs.ty});
+vw.addEventListener('mousemove',function(e){if(!drag.on)return;vs.tx=drag.stx+(e.clientX-drag.sx);vs.ty=drag.sty+(e.clientY-drag.sy);applyT()});
+vw.addEventListener('mouseup',function(){drag.on=false});
+vw.addEventListener('mouseleave',function(){drag.on=false});
+vw.addEventListener('touchstart',function(e){
+  if(e.touches.length===1){drag.on=true;drag.sx=e.touches[0].clientX;drag.sy=e.touches[0].clientY;drag.stx=vs.tx;drag.sty=vs.ty}
+  else if(e.touches.length===2){drag.on=false;pinch.on=true;pinch.d=tdist(e.touches);pinch.s=vs.s}
+},{passive:true});
+vw.addEventListener('touchmove',function(e){
+  if(drag.on&&e.touches.length===1){vs.tx=drag.stx+(e.touches[0].clientX-drag.sx);vs.ty=drag.sty+(e.touches[0].clientY-drag.sy);applyT()}
+  else if(pinch.on&&e.touches.length===2){vs.s=Math.min(Math.max(pinch.s*(tdist(e.touches)/pinch.d),.5),6);applyT()}
+},{passive:true});
+vw.addEventListener('touchend',function(){drag.on=false;pinch.on=false});
+vw.addEventListener('wheel',function(e){e.preventDefault();vs.s=Math.min(Math.max(vs.s-e.deltaY*.002,.5),6);applyT()},{passive:false});
+function tdist(t){var dx=t[0].clientX-t[1].clientX,dy=t[0].clientY-t[1].clientY;return Math.sqrt(dx*dx+dy*dy)}
+
+/* ═══════════════════════════════════════
+   NOTES
+═══════════════════════════════════════ */
+function openNote(id){
+  var s=findNSec(id); if(!s)return;
+  s.querySelector('.notes-dsp').style.display='none';
+  s.querySelector('.notes-inp').style.display='block';
+  s.querySelector('.notes-sbtn').style.display='block';
+  s.querySelector('.notes-inp').focus();
+}
+function saveNote(id){
+  var s=findNSec(id); if(!s)return;
+  var inp=s.querySelector('.notes-inp');
+  var dsp=s.querySelector('.notes-dsp');
+  var c=gcard(id); if(!c)return;
+  c.note=inp.value.trim();
+  dbPut(c).catch(function(){});
+  inp.style.display='none';
+  s.querySelector('.notes-sbtn').style.display='none';
+  dsp.style.display='block';
+  if(c.note){dsp.textContent=c.note;dsp.classList.remove('enote')}
+  else{dsp.textContent='לחץ להוספת הערה…';dsp.classList.add('enote')}
+  toast('📝 ההערה נשמרה!');
+}
+function findNSec(id){
+  var ss=document.querySelectorAll('.notes-sec');
+  for(var i=0;i<ss.length;i++){
+    var b=ss[i].querySelector('[data-a="snote"]');
+    if(b&&parseInt(b.getAttribute('data-id'))===id)return ss[i];
+  }
+  return null;
+}
+
+/* ═══════════════════════════════════════
+   SHEET / TOAST
+═══════════════════════════════════════ */
+document.getElementById('btnAdd').addEventListener('click',openSheet);
+function openSheet(){document.getElementById('soverlay').classList.add('open')}
+function closeSheet(){document.getElementById('soverlay').classList.remove('open')}
+function sovClick(e){if(e.target===document.getElementById('soverlay'))closeSheet()}
+
+var tt;
+function toast(m){
+  var el=document.getElementById('toast');
+  el.textContent=m; el.classList.add('show');
+  clearTimeout(tt); tt=setTimeout(function(){el.classList.remove('show')},2800);
+}
+
+/* ── START ── */
+init();
+</script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function() {
+    navigator.serviceWorker.register('./sw.js')
+      .then(function(reg){ console.log('[PWA] Service Worker registered:', reg.scope); })
+      .catch(function(err){ console.log('[PWA] Service Worker registration failed:', err); });
+  });
+}
+</script>
+</body>
+</html>
