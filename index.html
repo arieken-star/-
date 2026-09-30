@@ -192,6 +192,30 @@ body{font-family:'Heebo','Arial',sans-serif;background:var(--bg);color:var(--tx)
 ::-webkit-scrollbar{width:4px}
 ::-webkit-scrollbar-track{background:transparent}
 ::-webkit-scrollbar-thumb{background:var(--br2);border-radius:4px}
+
+/* ─── תוספות גרסה 2 ─── */
+.hbtn{width:34px;height:34px;background:var(--cb2);border:1px solid var(--br);border-radius:11px;color:var(--tx2);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.hbtn:active{transform:scale(.9)}
+.btn-sort{display:none;width:100%;background:var(--cb);border:1px solid var(--br2);color:var(--tx2);border-radius:12px;padding:10px;font-size:14px;font-weight:700;font-family:'Heebo','Arial',sans-serif;cursor:pointer;margin-bottom:12px}
+.btn-sort.show{display:block}
+.btn-sort.on{background:rgba(212,168,67,.15);border-color:var(--gold);color:var(--gold2)}
+.sort-tip{font-size:12px;color:var(--tx2);text-align:center;margin:-4px 0 10px}
+.backup-note{display:none;align-items:center;justify-content:space-between;gap:8px;background:rgba(196,80,80,.12);border:1px solid rgba(196,80,80,.45);border-radius:11px;padding:9px 12px;margin-bottom:14px;font-size:12px;color:#f0b0b0}
+.backup-note.show{display:flex}
+.backup-note button{background:#c45050;color:#fff;border:none;border-radius:8px;padding:6px 11px;font-size:12px;font-weight:700;font-family:'Heebo','Arial',sans-serif;cursor:pointer;white-space:nowrap}
+.view-list.sorting .card-list{padding:10px 10px}
+.view-list.sorting .drag-handle{color:var(--gold);border-color:rgba(212,168,67,.4);width:42px;height:42px;font-size:20px}
+.mvb{width:34px;height:34px;background:var(--cb2);border:1px solid var(--br);border-radius:10px;color:var(--tx);font-size:14px;cursor:pointer}
+.mvb:disabled{opacity:.25}
+.mvb:active{transform:scale(.88)}
+.vimg{will-change:transform}
+.vt-title{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:40vw}
+.set-btn{width:100%;display:flex;align-items:center;gap:10px;background:var(--cb2);border:1px solid var(--br);border-radius:13px;padding:13px 14px;margin-bottom:9px;color:var(--tx);font-size:15px;font-weight:700;font-family:'Heebo','Arial',sans-serif;cursor:pointer;text-align:right}
+.set-btn small{display:block;font-size:11px;font-weight:400;color:var(--tx2);margin-top:2px}
+.set-btn:active{border-color:var(--gold)}
+.set-status{font-size:12px;color:var(--tx2);line-height:1.7;background:var(--bg);border:1px solid var(--br);border-radius:11px;padding:10px 12px;margin-bottom:14px}
+.set-status b{color:var(--tx)}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
 <body>
@@ -213,6 +237,7 @@ body{font-family:'Heebo','Arial',sans-serif;background:var(--bg);color:var(--tx)
       <button class="vbtn" id="vb2" title="רשת"             onclick="setView(2)">⊞</button>
       <button class="vbtn" id="vb3" title="רשימה"           onclick="setView(3)">≡</button>
     </div>
+    <button class="hbtn" id="btnSet" title="גיבוי ושחזור">⚙️</button>
   </div>
 </div>
 
@@ -221,13 +246,14 @@ body{font-family:'Heebo','Arial',sans-serif;background:var(--bg);color:var(--tx)
     <div class="gdot"></div>
     <span>נשמר <strong>על המכשיר בלבד</strong> — ללא שמירה בענן</span>
   </div>
+  <div class="backup-note" id="backupNote">
+    <span>⚠️ אין גיבוי עדכני לתעודות</span>
+    <button onclick="openSet()">גבה עכשיו</button>
+  </div>
   <button class="btn-add" id="btnAdd">
     <span style="font-size:21px">＋</span> הוסף תעודה או כרטיס
   </button>
-  <!-- רמז גרירה — מוצג רק כשיש תעודות -->
-  <div class="drag-hint" id="dragHint">
-    <span>☰</span> לחץ לחיצה ארוכה על תעודה כדי לגרור ולסדר מחדש
-  </div>
+  <button class="btn-sort" id="btnSort" onclick="toggleSort()">⇅ סידור תעודות</button>
   <div id="cardsList"></div>
 </div>
 
@@ -236,16 +262,16 @@ body{font-family:'Heebo','Arial',sans-serif;background:var(--bg);color:var(--tx)
   <div class="vtbar">
     <div class="vt-title" id="vtTitle">תעודה</div>
     <div class="vt-btns">
-      <button class="vt-btn" id="vbRL">↺</button>
-      <button class="vt-btn" id="vbRR">↻</button>
-      <button class="vt-btn" id="vbZI">＋</button>
-      <button class="vt-btn" id="vbZO">－</button>
-      <button class="vt-btn" id="vbCL">✕</button>
+      <button class="vt-btn" id="vbRL" title="סובב שמאלה">↺</button>
+      <button class="vt-btn" id="vbRR" title="סובב ימינה">↻</button>
+      <button class="vt-btn" id="vbSV" title="שמור בהורדות">⬇</button>
+      <button class="vt-btn" id="vbSH" title="שתף / שמור בתיקייה">📤</button>
+      <button class="vt-btn" id="vbCL" title="סגור">✕</button>
     </div>
   </div>
   <div class="vwrap" id="vwrap">
-    <img class="vimg" id="vimg" src="" alt="">
-    <div class="vhint">צבוט להגדלה • גרור להזזה • כפתורים לסיבוב</div>
+    <img class="vimg" id="vimg" src="" alt="" draggable="false">
+    <div class="vhint" id="vhint">שתי אצבעות להגדלה והזזה • הקשה כפולה להגדלה/איפוס</div>
   </div>
 </div>
 
@@ -265,8 +291,22 @@ body{font-family:'Heebo','Arial',sans-serif;background:var(--bg);color:var(--tx)
   </div>
 </div>
 
+<!-- גיבוי ושחזור -->
+<div class="soverlay" id="setOverlay" onclick="if(event.target===this)closeSet()">
+  <div class="sheet">
+    <div class="sh-handle"></div>
+    <div class="sh-title">⚙️ גיבוי ושחזור</div>
+    <div class="set-status" id="setStatus"></div>
+    <button class="set-btn" onclick="shareBackup()">📤<span>גיבוי ל-Drive / וואטסאפ / תיקייה<small>בוחרים לאן לשמור את קובץ הגיבוי</small></span></button>
+    <button class="set-btn" onclick="exportBackup()">💾<span>גיבוי לתיקיית ההורדות<small>קובץ אחד שמכיל את כל התעודות והתמונות</small></span></button>
+    <button class="set-btn" onclick="document.getElementById('backupInput').click()">♻️<span>שחזור מקובץ גיבוי<small>מוסיף תעודות שחסרות, לא מוחק קיימות</small></span></button>
+    <button class="sh-cancel" onclick="closeSet()">סגור</button>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 <input type="file" id="fileInput" accept="image/*" style="display:none">
+<input type="file" id="backupInput" accept=".json,application/json,text/plain" style="display:none">
 
 <script>
 /* ═══════════════════════════════════════
@@ -293,18 +333,15 @@ var T=[
 
 /* ═══════════════════════════════════════
    STATE & DB
+   (אותו שם מסד נתונים כמו בגרסה הקודמת — התעודות הקיימות נשמרות)
 ═══════════════════════════════════════ */
-var db=null, cards=[], pendingId=null, viewMode=1;
+var db=null, cards=[], pendingId=null, viewMode=1, sortMode=false, persisted=null;
 var DB_NAME='DigitalWalletHE3', ST='cards';
 
-// ── שמירת מצב תצוגה ב-localStorage ──
-function loadViewMode(){
-  try{ var v=parseInt(localStorage.getItem('walletView')||'1'); return (v>=1&&v<=3)?v:1; }
-  catch(e){ return 1; }
-}
-function saveViewMode(n){
-  try{ localStorage.setItem('walletView',String(n)); }catch(e){}
-}
+function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
+function lsSet(k,v){try{localStorage.setItem(k,v)}catch(e){}}
+function loadViewMode(){var v=parseInt(lsGet('walletView')||'1');return (v>=1&&v<=3)?v:1}
+function saveViewMode(n){lsSet('walletView',String(n))}
 
 function openDB(){
   return new Promise(function(ok,fail){
@@ -324,19 +361,77 @@ function dbAll(){
     r.onerror=function(e){fail(e.target.error)};
   });
 }
-function dbPut(c){
+// מחכה לסיום מלא של הכתיבה לדיסק (ולא רק לבקשה) — כך שגיאת שמירה לא עוברת בשקט
+function txDone(tx){
   return new Promise(function(ok,fail){
-    var r=db.transaction(ST,'readwrite').objectStore(ST).put(c);
-    r.onsuccess=function(){ok()};
-    r.onerror=function(e){fail(e.target.error)};
+    tx.oncomplete=function(){ok()};
+    tx.onerror=function(){fail(tx.error)};
+    tx.onabort=function(){fail(tx.error||new Error('abort'))};
   });
 }
+function dbPutMany(arr){
+  if(!arr.length) return Promise.resolve();
+  var tx=db.transaction(ST,'readwrite'), s=tx.objectStore(ST);
+  arr.forEach(function(c){s.put(c)});
+  return txDone(tx);
+}
+function dbPut(c){return dbPutMany([c])}
 function dbDel(id){
-  return new Promise(function(ok,fail){
-    var r=db.transaction(ST,'readwrite').objectStore(ST).delete(id);
-    r.onsuccess=function(){ok()};
-    r.onerror=function(e){fail(e.target.error)};
+  var tx=db.transaction(ST,'readwrite'); tx.objectStore(ST).delete(id);
+  return txDone(tx);
+}
+function saveErr(e){
+  console.error(e);
+  var q=(e&&e.name==='QuotaExceededError')?' — אין מספיק מקום במכשיר':'';
+  alert('⚠️ השמירה במכשיר נכשלה'+q+'.\nהשינוי האחרון לא נשמר. מומלץ לגבות מיד מתפריט ⚙️.');
+}
+
+/* ── בקשת אחסון קבוע: מונע ממערכת ההפעלה למחוק את הנתונים ── */
+function requestPersist(){
+  if(!(navigator.storage&&navigator.storage.persist)) return Promise.resolve();
+  return navigator.storage.persisted().then(function(p){
+    if(p){persisted=true;return}
+    return navigator.storage.persist().then(function(g){persisted=g});
+  }).catch(function(){});
+}
+
+/* ── שחזור תעודות ממסדי נתונים ישנים של האפליקציה (אם קיימים) ── */
+var recoveredCount=0;
+function recoverOldDBs(){
+  if(!indexedDB.databases) return Promise.resolve();
+  return indexedDB.databases().then(function(list){
+    var names=list.map(function(x){return x.name}).filter(function(n){
+      return n&&n!==DB_NAME&&!lsGet('recovered:'+n);
+    });
+    return names.reduce(function(p,n){return p.then(function(){return readOtherDB(n)})},Promise.resolve());
+  }).catch(function(){});
+}
+function readOtherDB(name){
+  return new Promise(function(ok){
+    var r=indexedDB.open(name);
+    r.onerror=function(){ok([])};
+    r.onsuccess=function(e){
+      var d=e.target.result;
+      if(!d.objectStoreNames.contains('cards')){d.close();ok([]);return}
+      var q=d.transaction('cards','readonly').objectStore('cards').getAll();
+      q.onsuccess=function(){d.close();ok(q.result||[])};
+      q.onerror=function(){d.close();ok([])};
+    };
+  }).then(function(rows){
+    var added=mergeCards(rows);
+    return dbPutMany(added).then(function(){
+      recoveredCount+=added.length; lsSet('recovered:'+name,'1');
+    });
+  }).catch(function(){});
+}
+function mergeCards(rows){
+  var added=[];
+  (rows||[]).forEach(function(c){
+    if(!c||typeof c.id!=='number'||!c.typeId) return;
+    if(gcard(c.id)) return;
+    c.order=cards.length; cards.push(c); added.push(c);
   });
+  return added;
 }
 
 /* ═══════════════════════════════════════
@@ -350,26 +445,42 @@ function gcard(id){
   for(var i=0;i<cards.length;i++){if(cards[i].id===id)return cards[i];}
   return null;
 }
-function esc(s){return s?s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'):''}
+function esc(s){return s?String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'):''}
 function ctype(card){
   return card.custom
     ? {e:'📄',n:card.customName,c:card.customColor||'#7a8aaa',bg:'rgba(122,138,170,.15)'}
     : ftype(card.typeId);
+}
+function ordOf(c){return typeof c.order==='number'?c.order:c.ts}
+function clamp(v,a,b){return Math.min(Math.max(v,a),b)}
+function pad(n){return (n<10?'0':'')+n}
+
+/* סדר קבוע 0,1,2… — שומר רק את הכרטיסים שהמיקום שלהם השתנה */
+function commitOrder(){
+  var changed=[];
+  cards.forEach(function(c,i){ if(c.order!==i){c.order=i;changed.push(c)} });
+  return dbPutMany(changed).catch(saveErr);
 }
 
 /* ═══════════════════════════════════════
    INIT
 ═══════════════════════════════════════ */
 function init(){
-  viewMode = loadViewMode();
+  viewMode=loadViewMode();
   buildTypeGrid();
+  requestPersist();
   openDB().then(dbAll).then(function(rows){
-    cards = rows;
-    cards.sort(function(a,b){return (a.order||a.ts)-(b.order||b.ts)});
-    render();
-    fadeLoader();
-  }).catch(function(){
-    cards=[];render();fadeLoader();
+    cards=rows.filter(function(c){return c&&typeof c.id==='number'});
+    cards.sort(function(a,b){return ordOf(a)-ordOf(b)});
+    return recoverOldDBs();
+  }).then(function(){
+    return commitOrder();
+  }).then(function(){
+    render(); fadeLoader();
+    if(recoveredCount) toast('♻️ שוחזרו '+recoveredCount+' תעודות מגרסה קודמת');
+  }).catch(function(e){
+    console.error(e); cards=[]; render(); fadeLoader();
+    toast('⚠️ לא ניתן לפתוח את האחסון במכשיר');
   });
 }
 function fadeLoader(){
@@ -377,21 +488,20 @@ function fadeLoader(){
   setTimeout(function(){
     l.classList.add('fade');
     setTimeout(function(){l.style.display='none'},400);
-  },600);
+  },500);
 }
 
 /* ═══════════════════════════════════════
-   VIEW MODE  — זוכר בין פתיחות
+   VIEW MODE
 ═══════════════════════════════════════ */
 function setView(n){
-  viewMode=n;
-  saveViewMode(n);          // ← שומר ב-localStorage
-  updateViewBtns();
+  viewMode=n; sortMode=false;
+  saveViewMode(n);
   render();
 }
 function updateViewBtns(){
   for(var i=1;i<=3;i++){
-    document.getElementById('vb'+i).classList.toggle('active',i===viewMode);
+    document.getElementById('vb'+i).classList.toggle('active',!sortMode&&i===viewMode);
   }
 }
 
@@ -402,17 +512,30 @@ function render(){
   updateViewBtns();
   var el=document.getElementById('cardsList');
   document.getElementById('cnt').textContent=cards.length;
-  // הצג/הסתר רמז גרירה
-  document.getElementById('dragHint').classList.toggle('show', cards.length>1);
+  if(cards.length<2) sortMode=false;
+  var sb=document.getElementById('btnSort');
+  sb.classList.toggle('show',cards.length>1);
+  sb.classList.toggle('on',sortMode);
+  sb.textContent=sortMode?'✓ סיום סידור':'⇅ סידור תעודות';
+  updateBackupNote();
   if(!cards.length){
-    el.innerHTML='<div class="empty"><div class="empty-ico">🗂️</div><p>אין תעודות עדיין.<br>לחץ על הכפתור הצהוב להוספה.</p></div>';
+    el.className='';
+    el.innerHTML='<div class="empty"><div class="empty-ico">🗂️</div><p>אין תעודות עדיין.<br>לחץ על הכפתור הצהוב להוספה,<br>או שחזר מגיבוי בתפריט ⚙️.</p></div>';
     return;
   }
-  if(viewMode===1) renderBig(el);
+  if(sortMode) renderSort(el);
+  else if(viewMode===1) renderBig(el);
   else if(viewMode===2) renderGrid(el);
   else renderList(el);
   attachActions(el);
-  attachDrag(el);
+  if(sortMode) attachSortDrag(el);
+}
+
+function actBtns(id,withView){
+  return (withView?'<button class="ibtn" data-a="view" data-id="'+id+'" title="פתח">🔍</button>':'')+
+    '<button class="ibtn" data-a="photo" data-id="'+id+'" title="צלם / החלף תמונה">📷</button>'+
+    '<button class="ibtn" data-a="save"  data-id="'+id+'" title="שמור למכשיר">⬇</button>'+
+    '<button class="ibtn" data-a="del"   data-id="'+id+'" title="מחק">🗑️</button>';
 }
 
 /* ─── BIG ─── */
@@ -421,26 +544,22 @@ function renderBig(el){
   cards.forEach(function(card,i){
     var t=ctype(card);
     var d=document.createElement('div');
-    d.className='card-big'; d.dataset.id=card.id; d.style.animationDelay=(i*.05)+'s';
+    d.className='card-big'; d.dataset.card=card.id; d.style.animationDelay=(i*.05)+'s';
     var imgH=card.image
-      ? '<img src="'+card.image+'" alt="'+esc(t.n)+'" loading="lazy"><div class="zoom-hint">🔍 לחץ לזום + סיבוב</div>'
-      : '<div class="no-img"><div class="no-img-ico">📷</div><div class="no-img-tx">לחץ לצילום או בחירה מהגלריה<br><strong>ברזולוציה גבוהה</strong></div></div>';
+      ? '<img src="'+card.image+'" alt="'+esc(t.n)+'" loading="lazy"><div class="zoom-hint">🔍 לחץ להגדלה</div>'
+      : '<div class="no-img"><div class="no-img-ico">📷</div><div class="no-img-tx">לחץ לצילום או בחירה מהגלריה</div></div>';
     var note=card.note||'';
     d.innerHTML=
       '<div class="card-top-bar" style="background:linear-gradient(90deg,'+t.c+','+t.c+'77)"></div>'+
       '<div class="card-head">'+
         '<div class="card-lft">'+
-          '<div class="drag-handle" title="גרור לשינוי סדר">⠿</div>'+
           '<div class="card-ico" style="background:'+t.bg+'">'+t.e+'</div>'+
           '<div>'+
             '<div class="card-nm" style="color:'+t.c+'">'+esc(t.n)+'</div>'+
             '<div class="card-sb">'+(card.image?'📸 שמורה':'אין תמונה עדיין')+'</div>'+
           '</div>'+
         '</div>'+
-        '<div class="card-acts">'+
-          '<button class="ibtn" data-a="photo" data-id="'+card.id+'">📷</button>'+
-          '<button class="ibtn" data-a="del"   data-id="'+card.id+'">🗑️</button>'+
-        '</div>'+
+        '<div class="card-acts">'+actBtns(card.id,false)+'</div>'+
       '</div>'+
       '<div class="img-zone" data-a="view" data-id="'+card.id+'">'+imgH+'</div>'+
       '<div class="notes-sec">'+
@@ -460,10 +579,10 @@ function renderGrid(el){
   cards.forEach(function(card,i){
     var t=ctype(card);
     var d=document.createElement('div');
-    d.className='card-grid'; d.dataset.id=card.id; d.style.animationDelay=(i*.04)+'s';
+    d.className='card-grid'; d.dataset.card=card.id; d.style.animationDelay=(i*.04)+'s';
     var imgH=card.image
-      ? '<img class="card-grid-img" src="'+card.image+'" alt="'+esc(t.n)+'" loading="lazy">'
-      : '<div class="card-grid-nimg">📷</div>';
+      ? '<img class="card-grid-img" src="'+card.image+'" alt="'+esc(t.n)+'" loading="lazy" data-a="view" data-id="'+card.id+'">'
+      : '<div class="card-grid-nimg" data-a="photo" data-id="'+card.id+'">📷</div>';
     d.innerHTML=
       '<div class="card-grid-top" style="background:'+t.c+'"></div>'+
       '<div class="card-grid-body">'+
@@ -471,11 +590,7 @@ function renderGrid(el){
         '<div class="card-grid-nm" style="color:'+t.c+'">'+esc(t.n)+'</div>'+
       '</div>'+
       imgH+
-      '<div class="card-grid-acts">'+
-        '<button class="ibtn" data-a="view"  data-id="'+card.id+'" title="פתח">🔍</button>'+
-        '<button class="ibtn" data-a="photo" data-id="'+card.id+'" title="תמונה">📷</button>'+
-        '<button class="ibtn" data-a="del"   data-id="'+card.id+'" title="מחק">🗑️</button>'+
-      '</div>';
+      '<div class="card-grid-acts">'+actBtns(card.id,false)+'</div>';
     el.appendChild(d);
   });
 }
@@ -486,22 +601,41 @@ function renderList(el){
   cards.forEach(function(card,i){
     var t=ctype(card);
     var d=document.createElement('div');
-    d.className='card-list'; d.dataset.id=card.id; d.style.animationDelay=(i*.03)+'s';
+    d.className='card-list'; d.dataset.card=card.id; d.style.animationDelay=(i*.03)+'s';
     d.innerHTML=
       '<div class="card-list-ico" style="background:'+t.bg+'">'+t.e+'</div>'+
       '<div class="card-list-info">'+
         '<div class="card-list-nm" style="color:'+t.c+'">'+esc(t.n)+'</div>'+
         '<div class="card-list-sb">'+(card.image?'📸 שמורה':'אין תמונה')+'</div>'+
       '</div>'+
+      '<div class="card-list-acts">'+actBtns(card.id,true)+'</div>';
+    el.appendChild(d);
+  });
+}
+
+/* ─── SORT MODE — רק כאן אפשר לשנות סדר ─── */
+function renderSort(el){
+  el.className='view-list sorting'; el.innerHTML='';
+  var tip=document.createElement('div');
+  tip.className='sort-tip';
+  tip.textContent='גרור בעזרת ⠿ או השתמש בחצים. הסדר נשמר מיד.';
+  el.appendChild(tip);
+  cards.forEach(function(card,i){
+    var t=ctype(card);
+    var d=document.createElement('div');
+    d.className='card-list'; d.dataset.card=card.id;
+    d.innerHTML=
+      '<div class="drag-handle" title="גרור">⠿</div>'+
+      '<div class="card-list-ico" style="background:'+t.bg+'">'+t.e+'</div>'+
+      '<div class="card-list-info"><div class="card-list-nm" style="color:'+t.c+'">'+esc(t.n)+'</div></div>'+
       '<div class="card-list-acts">'+
-        '<button class="ibtn" data-a="view"  data-id="'+card.id+'" title="פתח">🔍</button>'+
-        '<button class="ibtn" data-a="photo" data-id="'+card.id+'" title="תמונה">📷</button>'+
-        '<button class="ibtn" data-a="del"   data-id="'+card.id+'" title="מחק">🗑️</button>'+
-        '<div class="drag-handle" title="גרור לשינוי סדר">⠿</div>'+
+        '<button class="mvb" data-a="up" data-id="'+card.id+'" '+(i===0?'disabled':'')+'>▲</button>'+
+        '<button class="mvb" data-a="down" data-id="'+card.id+'" '+(i===cards.length-1?'disabled':'')+'>▼</button>'+
       '</div>';
     el.appendChild(d);
   });
 }
+function toggleSort(){sortMode=!sortMode;render();if(!sortMode)toast('✅ הסדר נשמר')}
 
 /* ═══════════════════════════════════════
    ACTION EVENTS
@@ -512,151 +646,67 @@ function attachActions(el){
       e.stopPropagation();
       var a=this.getAttribute('data-a');
       var id=parseInt(this.getAttribute('data-id'));
-      if(a==='photo')  trigPhoto(id);
-      else if(a==='del')    delCard(id);
-      else if(a==='view')   viewImg(id);
-      else if(a==='enote')  openNote(id);
-      else if(a==='snote')  saveNote(id);
+      if(a==='photo')      trigPhoto(id);
+      else if(a==='del')   delCard(id);
+      else if(a==='view')  viewImg(id);
+      else if(a==='save')  saveCardToDevice(id);
+      else if(a==='enote') openNote(id);
+      else if(a==='snote') saveNote(id);
+      else if(a==='up')    moveBy(id,-1);
+      else if(a==='down')  moveBy(id,1);
     });
   });
 }
 
 /* ═══════════════════════════════════════
-   DRAG & DROP — לחיצה ארוכה לגרירה
+   REORDER — פעיל רק במצב "סידור תעודות"
 ═══════════════════════════════════════ */
-var dnd={
-  dragging:null,   // אלמנט DOM שנגרר
-  dragId:null,     // id של הכרטיס
-  overId:null,     // id של הכרטיס שמעליו
-  longTimer:null,  // טיימר לחיצה ארוכה
-  startX:0, startY:0,
-  moved:false
-};
-var LONG_PRESS_MS = 650; // מילישניות ללחיצה ארוכה
-
-function attachDrag(container){
-  var items=container.querySelectorAll('[data-id]');
-  items.forEach(function(el){
-    // מגע — לחיצה ארוכה
-    el.addEventListener('touchstart', onDragTouchStart, {passive:true});
-    el.addEventListener('touchmove',  onDragTouchMove,  {passive:false});
-    el.addEventListener('touchend',   onDragTouchEnd,   {passive:true});
-    // עכבר — לחיצה ארוכה
-    el.addEventListener('mousedown',  onDragMouseDown);
-  });
-}
-
-/* ── TOUCH ── */
-function onDragTouchStart(e){
-  var el=this;
-  dnd.startX=e.touches[0].clientX;
-  dnd.startY=e.touches[0].clientY;
-  dnd.moved=false;
-  dnd.longTimer=setTimeout(function(){
-    startDrag(el);
-  }, LONG_PRESS_MS);
-}
-function onDragTouchMove(e){
-  if(!dnd.longTimer&&!dnd.dragging) return;
-  var dx=e.touches[0].clientX-dnd.startX;
-  var dy=e.touches[0].clientY-dnd.startY;
-  if(Math.abs(dx)>10||Math.abs(dy)>10){
-    if(!dnd.dragging){clearTimeout(dnd.longTimer);dnd.longTimer=null;return;}
-    dnd.moved=true;
-    e.preventDefault();
-    // מציאת הפריט שמתחת
-    var el=document.elementFromPoint(e.touches[0].clientX, e.touches[0].clientY);
-    var target=el&&el.closest('[data-id]');
-    updateOverTarget(target);
-  }
-}
-function onDragTouchEnd(e){
-  clearTimeout(dnd.longTimer); dnd.longTimer=null;
-  if(dnd.dragging) finishDrag();
-}
-
-/* ── MOUSE ── */
-function onDragMouseDown(e){
-  if(e.button!==0) return;
-  var el=this;
-  dnd.startX=e.clientX; dnd.startY=e.clientY; dnd.moved=false;
-  dnd.longTimer=setTimeout(function(){ startDrag(el); }, LONG_PRESS_MS);
-  document.addEventListener('mousemove', onDragMouseMove);
-  document.addEventListener('mouseup',   onDragMouseUp);
-}
-function onDragMouseMove(e){
-  if(!dnd.longTimer&&!dnd.dragging){document.removeEventListener('mousemove',onDragMouseMove);return;}
-  var dx=e.clientX-dnd.startX, dy=e.clientY-dnd.startY;
-  if(Math.abs(dx)>10||Math.abs(dy)>10){
-    if(!dnd.dragging){clearTimeout(dnd.longTimer);dnd.longTimer=null;return;}
-    dnd.moved=true;
-    var el=document.elementFromPoint(e.clientX, e.clientY);
-    var target=el&&el.closest('[data-id]');
-    updateOverTarget(target);
-  }
-}
-function onDragMouseUp(){
-  clearTimeout(dnd.longTimer); dnd.longTimer=null;
-  document.removeEventListener('mousemove',onDragMouseMove);
-  document.removeEventListener('mouseup',  onDragMouseUp);
-  if(dnd.dragging) finishDrag();
-}
-
-/* ── DRAG LOGIC ── */
-function startDrag(el){
-  dnd.dragging=el;
-  dnd.dragId=parseInt(el.dataset.id);
-  el.classList.add('dragging');
-  vibrate();
-  toast('⠿ גרור למעלה או למטה לשינוי סדר');
-}
-
-function updateOverTarget(target){
-  // נקה סימון ישן
-  document.querySelectorAll('.drag-over').forEach(function(e){e.classList.remove('drag-over')});
-  if(!target||!target.dataset.id) return;
-  var overId=parseInt(target.dataset.id);
-  if(overId===dnd.dragId) return;
-  dnd.overId=overId;
-  target.classList.add('drag-over');
-}
-
-function finishDrag(){
-  var draggingEl=dnd.dragging;
-  var dragId=dnd.dragId;
-  var overId=dnd.overId;
-  // נקה מחלקות
-  if(draggingEl) draggingEl.classList.remove('dragging');
-  document.querySelectorAll('.drag-over').forEach(function(e){e.classList.remove('drag-over')});
-  dnd.dragging=null; dnd.dragId=null; dnd.overId=null;
-
-  if(!dnd.moved||overId===null||overId===dragId){return;}
-
-  // מצא אינדקסים
-  var fromIdx=-1, toIdx=-1;
-  for(var i=0;i<cards.length;i++){
-    if(cards[i].id===dragId)  fromIdx=i;
-    if(cards[i].id===overId)  toIdx=i;
-  }
+function idxOf(id){for(var i=0;i<cards.length;i++){if(cards[i].id===id)return i}return -1}
+function moveTo(fromIdx,toIdx){
   if(fromIdx<0||toIdx<0||fromIdx===toIdx) return;
+  var m=cards.splice(fromIdx,1)[0];
+  cards.splice(toIdx,0,m);
+  commitOrder(); render(); vibrate();
+}
+function moveBy(id,delta){var i=idxOf(id);moveTo(i,clamp(i+delta,0,cards.length-1))}
 
-  // הזז בתוך המערך
-  var moved=cards.splice(fromIdx,1)[0];
-  cards.splice(toIdx,0,moved);
-
-  // עדכן שדה order ושמור
-  var now=Date.now();
-  cards.forEach(function(c,i){
-    c.order=now+i;
-    dbPut(c).catch(function(){});
+var sd=null;
+function attachSortDrag(el){
+  el.querySelectorAll('.drag-handle').forEach(function(h){
+    h.addEventListener('pointerdown',onHandleDown);
   });
-  render();
-  toast('✅ הסדר עודכן');
 }
-
-function vibrate(){
-  try{if(navigator.vibrate) navigator.vibrate(40);}catch(e){}
+function onHandleDown(e){
+  e.preventDefault();
+  var item=this.closest('.card-list');
+  sd={h:this,item:item,id:parseInt(item.dataset.card),overId:null};
+  try{this.setPointerCapture(e.pointerId)}catch(err){}
+  item.classList.add('dragging'); vibrate();
+  this.addEventListener('pointermove',onHandleMove);
+  this.addEventListener('pointerup',onHandleUp);
+  this.addEventListener('pointercancel',onHandleUp);
 }
+function onHandleMove(e){
+  if(!sd) return;
+  if(e.clientY<90) window.scrollBy(0,-14);
+  else if(e.clientY>window.innerHeight-90) window.scrollBy(0,14);
+  var t=document.elementFromPoint(e.clientX,e.clientY);
+  var it=t&&t.closest('.card-list');
+  document.querySelectorAll('.drag-over').forEach(function(x){x.classList.remove('drag-over')});
+  if(it&&it!==sd.item){sd.overId=parseInt(it.dataset.card);it.classList.add('drag-over')}
+  else sd.overId=null;
+}
+function onHandleUp(){
+  if(!sd) return;
+  var s=sd; sd=null;
+  s.h.removeEventListener('pointermove',onHandleMove);
+  s.h.removeEventListener('pointerup',onHandleUp);
+  s.h.removeEventListener('pointercancel',onHandleUp);
+  s.item.classList.remove('dragging');
+  document.querySelectorAll('.drag-over').forEach(function(x){x.classList.remove('drag-over')});
+  if(s.overId!==null) moveTo(idxOf(s.id),idxOf(s.overId));
+}
+function vibrate(){try{if(navigator.vibrate)navigator.vibrate(30)}catch(e){}}
 
 /* ═══════════════════════════════════════
    ADD / DELETE
@@ -679,88 +729,284 @@ function addCustomCard(){
   document.getElementById('customNameInp').value='';
 }
 function addCard(typeId,isCustom,customName){
-  var t=ftype(typeId);
-  var now=Date.now();
+  var t=ftype(typeId), now=Date.now();
   var card={
     id:now, typeId:typeId,
     custom:!!isCustom, customName:customName||null, customColor:t.c,
-    image:null, note:'', ts:now,
-    order: now + cards.length
+    image:null, note:'', ts:now, order:cards.length
   };
-  cards.push(card);
-  dbPut(card).catch(function(){});
-  closeSheet(); render();
-  var lbl=isCustom?customName:t.n;
-  toast((isCustom?'📄':t.e)+' '+lbl+' נוספה!');
+  closeSheet();
+  dbPut(card).then(function(){
+    cards.push(card); render();
+    toast((isCustom?'📄':t.e)+' '+(isCustom?customName:t.n)+' נוספה');
+  }).catch(saveErr);
 }
 function delCard(id){
   var card=gcard(id); if(!card)return;
-  var nm=card.custom?card.customName:ftype(card.typeId).n;
+  var nm=ctype(card).n;
   if(!confirm('למחוק את "'+nm+'"?'))return;
-  cards=cards.filter(function(c){return c.id!==id});
-  dbDel(id).catch(function(){});
-  render(); toast('🗑️ '+nm+' נמחקה');
+  dbDel(id).then(function(){
+    cards=cards.filter(function(c){return c.id!==id});
+    commitOrder(); render(); toast('🗑️ '+nm+' נמחקה');
+  }).catch(saveErr);
 }
 
 /* ═══════════════════════════════════════
-   PHOTO
+   PHOTO — כיווץ חכם (עד 3000 פיקסלים, איכות גבוהה)
+   תמונות ענק של 50–200MP מתפוצצות את האחסון ועלולות לגרום לכשל שמירה
 ═══════════════════════════════════════ */
 function trigPhoto(id){pendingId=id;document.getElementById('fileInput').click()}
+function readAsDataURL(f){
+  return new Promise(function(ok,fail){var r=new FileReader();r.onload=function(){ok(r.result)};r.onerror=function(){fail(r.error)};r.readAsDataURL(f)});
+}
+function prepImage(file){
+  return new Promise(function(ok){
+    var url=URL.createObjectURL(file), img=new Image();
+    img.onload=function(){
+      try{
+        var MAX=3000, w=img.naturalWidth, h=img.naturalHeight, k=Math.min(1,MAX/Math.max(w,h));
+        if(k===1&&file.size<2500000){URL.revokeObjectURL(url);ok(readAsDataURL(file));return}
+        var cv=document.createElement('canvas');
+        cv.width=Math.round(w*k); cv.height=Math.round(h*k);
+        cv.getContext('2d').drawImage(img,0,0,cv.width,cv.height);
+        URL.revokeObjectURL(url);
+        ok(cv.toDataURL('image/jpeg',0.92));
+      }catch(e){URL.revokeObjectURL(url);ok(readAsDataURL(file))}
+    };
+    img.onerror=function(){URL.revokeObjectURL(url);ok(readAsDataURL(file))};
+    img.src=url;
+  });
+}
 document.getElementById('fileInput').addEventListener('change',function(e){
-  var f=e.target.files[0]; if(!f||pendingId===null)return;
-  var pid=pendingId;
-  var r=new FileReader();
-  r.onload=function(ev){
-    var c=gcard(pid); if(!c)return;
-    c.image=ev.target.result;
-    dbPut(c).catch(function(){});
-    render(); toast('📸 התמונה נשמרה!'); pendingId=null;
-  };
-  r.readAsDataURL(f); e.target.value='';
+  var f=e.target.files[0]; e.target.value='';
+  if(!f||pendingId===null)return;
+  var c=gcard(pendingId); pendingId=null; if(!c)return;
+  toast('⏳ שומר תמונה…');
+  prepImage(f).then(function(data){
+    var old=c.image; c.image=data;
+    return dbPut(c).then(function(){render();toast('📸 התמונה נשמרה')})
+      .catch(function(err){c.image=old;saveErr(err)});
+  });
 });
 
 /* ═══════════════════════════════════════
-   VIEWER
+   שמירה למכשיר / שיתוף
 ═══════════════════════════════════════ */
-var vs={s:1,r:0,tx:0,ty:0},drag={on:false},pinch={on:false};
+function dataURLtoBlob(u){
+  var p=u.split(','), m=(p[0].match(/:(.*?);/)||[])[1]||'image/jpeg';
+  var b=atob(p[1]), n=b.length, a=new Uint8Array(n);
+  while(n--) a[n]=b.charCodeAt(n);
+  return new Blob([a],{type:m});
+}
+function extFor(m){return m==='image/png'?'png':m==='image/webp'?'webp':m==='image/gif'?'gif':'jpg'}
+function cardFileName(c,mime){
+  var nm=(ctype(c).n||'תעודה').replace(/[\\\/:*?"<>|]/g,'').trim()||'תעודה';
+  return nm+'.'+extFor(mime);
+}
+function downloadBlob(blob,name){
+  var url=URL.createObjectURL(blob), a=document.createElement('a');
+  a.href=url; a.download=name; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(function(){URL.revokeObjectURL(url)},5000);
+}
+function saveCardToDevice(id){
+  var c=gcard(id);
+  if(!c||!c.image){toast('אין תמונה לשמירה');return}
+  var b=dataURLtoBlob(c.image);
+  downloadBlob(b,cardFileName(c,b.type));
+  toast('⬇ נשמר בתיקיית ההורדות');
+}
+function shareCard(id){
+  var c=gcard(id);
+  if(!c||!c.image){toast('אין תמונה לשיתוף');return}
+  var b=dataURLtoBlob(c.image), f;
+  try{f=new File([b],cardFileName(c,b.type),{type:b.type})}catch(e){saveCardToDevice(id);return}
+  if(navigator.canShare&&navigator.canShare({files:[f]})){
+    navigator.share({files:[f],title:ctype(c).n}).catch(function(err){
+      if(err&&err.name!=='AbortError') saveCardToDevice(id);
+    });
+  } else saveCardToDevice(id);
+}
+
+/* ═══════════════════════════════════════
+   גיבוי ושחזור
+═══════════════════════════════════════ */
+function backupBlob(){
+  return new Blob([JSON.stringify({app:'arnak-teudot',version:2,created:new Date().toISOString(),cards:cards})],{type:'application/json'});
+}
+function backupName(){var d=new Date();return 'גיבוי-ארנק-'+d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())+'.json'}
+function markBackup(){lsSet('lastBackup',String(Date.now()));updateBackupNote();fillSetStatus()}
+function exportBackup(){
+  if(!cards.length){toast('אין תעודות לגיבוי');return}
+  downloadBlob(backupBlob(),backupName()); markBackup();
+  toast('💾 הגיבוי נשמר בתיקיית ההורדות');
+}
+function shareBackup(){
+  if(!cards.length){toast('אין תעודות לגיבוי');return}
+  var f;
+  try{f=new File([backupBlob()],backupName(),{type:'application/json'})}catch(e){exportBackup();return}
+  if(navigator.canShare&&navigator.canShare({files:[f]})){
+    navigator.share({files:[f],title:'גיבוי ארנק'}).then(markBackup).catch(function(err){
+      if(err&&err.name!=='AbortError') exportBackup();
+    });
+  } else exportBackup();
+}
+document.getElementById('backupInput').addEventListener('change',function(e){
+  var f=e.target.files[0]; e.target.value=''; if(!f)return;
+  f.text().then(function(txt){
+    var data=JSON.parse(txt);
+    var rows=Array.isArray(data)?data:data.cards;
+    if(!Array.isArray(rows)) throw new Error('bad');
+    var added=mergeCards(rows);
+    return dbPutMany(added).then(function(){
+      render(); closeSet();
+      toast(added.length?('♻️ שוחזרו '+added.length+' תעודות'):'כל התעודות מהגיבוי כבר קיימות');
+    }).catch(function(err){
+      cards=cards.filter(function(c){return added.indexOf(c)<0});
+      saveErr(err);
+    });
+  }).catch(function(){alert('הקובץ שנבחר אינו קובץ גיבוי של הארנק.')});
+});
+function updateBackupNote(){
+  var last=parseInt(lsGet('lastBackup')||'0');
+  var hasImg=cards.some(function(c){return c.image});
+  var old=!last||(Date.now()-last)>14*864e5;
+  document.getElementById('backupNote').classList.toggle('show',hasImg&&old);
+}
+function fillSetStatus(){
+  var last=parseInt(lsGet('lastBackup')||'0');
+  var lt=last?new Date(last).toLocaleDateString('he-IL'):'עדיין לא בוצע';
+  var ps=persisted===true?'<b>מוגן ✓</b> — המכשיר לא ימחק את הנתונים לבד':
+         persisted===false?'<b>לא מוגן</b> — התקן את האפליקציה למסך הבית, ושמור גיבוי':
+         'לא ידוע';
+  document.getElementById('setStatus').innerHTML=
+    'תעודות: <b>'+cards.length+'</b><br>גיבוי אחרון: <b>'+lt+'</b><br>אחסון: '+ps;
+}
+document.getElementById('btnSet').addEventListener('click',openSet);
+function openSet(){
+  requestPersist().then(fillSetStatus); fillSetStatus();
+  document.getElementById('setOverlay').classList.add('open');
+}
+function closeSet(){document.getElementById('setOverlay').classList.remove('open')}
+
+/* ═══════════════════════════════════════
+   VIEWER — צביטה בשתי אצבעות, הזזה, הקשה כפולה
+═══════════════════════════════════════ */
+var vs={s:1,r:0,tx:0,ty:0}, ptrs={}, gst=null, downInfo=null, lastTap={t:0,x:0,y:0}, viewId=null;
+var vw=document.getElementById('vwrap'), vimg=document.getElementById('vimg'), viewer=document.getElementById('viewer');
+
 function viewImg(id){
   var c=gcard(id); if(!c)return;
   if(!c.image){trigPhoto(id);return}
+  viewId=id;
   var t=ctype(c);
   document.getElementById('vtTitle').textContent=t.e+' '+t.n;
-  document.getElementById('vimg').src=c.image;
-  vs={s:1,r:0,tx:0,ty:0}; applyT();
-  document.getElementById('viewer').classList.add('open');
+  vimg.src=c.image;
+  vs={s:1,r:0,tx:0,ty:0}; ptrs={}; gst=null; applyT(false);
+  var h=document.getElementById('vhint'); h.style.animation='none'; h.offsetHeight; h.style.animation='';
+  viewer.classList.add('open');
+  try{history.pushState({viewer:1},'')}catch(e){}
 }
-function applyT(){
-  document.getElementById('vimg').style.transform=
-    'translate('+vs.tx+'px,'+vs.ty+'px) rotate('+vs.r+'deg) scale('+vs.s+')';
+function closeViewer(fromPop){
+  if(!viewer.classList.contains('open'))return;
+  viewer.classList.remove('open'); viewId=null;
+  if(!fromPop&&history.state&&history.state.viewer){try{history.back()}catch(e){}}
 }
-document.getElementById('vbCL').addEventListener('click',function(){document.getElementById('viewer').classList.remove('open')});
-document.getElementById('vbRL').addEventListener('click',function(){vs.r-=90;applyT()});
-document.getElementById('vbRR').addEventListener('click',function(){vs.r+=90;applyT()});
-document.getElementById('vbZI').addEventListener('click',function(){vs.s=Math.min(vs.s+0.4,5);applyT()});
-document.getElementById('vbZO').addEventListener('click',function(){vs.s=Math.max(vs.s-0.4,.5);applyT()});
-var vw=document.getElementById('vwrap');
-vw.addEventListener('mousedown',function(e){drag.on=true;drag.sx=e.clientX;drag.sy=e.clientY;drag.stx=vs.tx;drag.sty=vs.ty});
-vw.addEventListener('mousemove',function(e){if(!drag.on)return;vs.tx=drag.stx+(e.clientX-drag.sx);vs.ty=drag.sty+(e.clientY-drag.sy);applyT()});
-vw.addEventListener('mouseup',function(){drag.on=false});
-vw.addEventListener('mouseleave',function(){drag.on=false});
-vw.addEventListener('touchstart',function(e){
-  if(e.touches.length===1){drag.on=true;drag.sx=e.touches[0].clientX;drag.sy=e.touches[0].clientY;drag.stx=vs.tx;drag.sty=vs.ty}
-  else if(e.touches.length===2){drag.on=false;pinch.on=true;pinch.d=tdist(e.touches);pinch.s=vs.s}
-},{passive:true});
-vw.addEventListener('touchmove',function(e){
-  if(drag.on&&e.touches.length===1){vs.tx=drag.stx+(e.touches[0].clientX-drag.sx);vs.ty=drag.sty+(e.touches[0].clientY-drag.sy);applyT()}
-  else if(pinch.on&&e.touches.length===2){vs.s=Math.min(Math.max(pinch.s*(tdist(e.touches)/pinch.d),.5),6);applyT()}
-},{passive:true});
-vw.addEventListener('touchend',function(){drag.on=false;pinch.on=false});
-vw.addEventListener('wheel',function(e){e.preventDefault();vs.s=Math.min(Math.max(vs.s-e.deltaY*.002,.5),6);applyT()},{passive:false});
-function tdist(t){var dx=t[0].clientX-t[1].clientX,dy=t[0].clientY-t[1].clientY;return Math.sqrt(dx*dx+dy*dy)}
+window.addEventListener('popstate',function(){closeViewer(true)}); // כפתור "חזור" של אנדרואיד סוגר את המציג
+
+function applyT(anim){
+  vimg.style.transition=anim?'transform .2s ease-out':'none';
+  vimg.style.transform='translate('+vs.tx+'px,'+vs.ty+'px) rotate('+vs.r+'deg) scale('+vs.s+')';
+}
+function vCenter(){var r=vw.getBoundingClientRect();return {x:r.left+r.width/2,y:r.top+r.height/2,w:r.width,h:r.height}}
+function zoomAt(ns,fx,fy){
+  var C=vCenter(); ns=clamp(ns,1,8);
+  var k=ns/vs.s;
+  vs.tx=(fx-C.x)-k*(fx-C.x-vs.tx);
+  vs.ty=(fy-C.y)-k*(fy-C.y-vs.ty);
+  vs.s=ns;
+}
+function clampPan(){
+  var C=vCenter(), w=vimg.offsetWidth, h=vimg.offsetHeight;
+  if(Math.abs(vs.r%180)===90){var t=w;w=h;h=t}
+  var mx=Math.max(0,(w*vs.s-C.w)/2), my=Math.max(0,(h*vs.s-C.h)/2);
+  vs.tx=clamp(vs.tx,-mx,mx); vs.ty=clamp(vs.ty,-my,my);
+}
+function settle(){
+  if(vs.s<=1.02){vs.s=1;vs.tx=0;vs.ty=0}else clampPan();
+  applyT(true);
+}
+function plist(){return Object.keys(ptrs).map(function(k){return ptrs[k]})}
+function pdist(a,b){var dx=a.x-b.x,dy=a.y-b.y;return Math.sqrt(dx*dx+dy*dy)||1}
+function pmid(a,b){return {x:(a.x+b.x)/2,y:(a.y+b.y)/2}}
+function startGesture(){
+  var p=plist();
+  if(!p.length){gst=null;return}
+  if(p.length===1) gst={n:1,x0:p[0].x,y0:p[0].y,tx0:vs.tx,ty0:vs.ty};
+  else gst={n:2,d0:pdist(p[0],p[1]),m0:pmid(p[0],p[1]),s0:vs.s,tx0:vs.tx,ty0:vs.ty};
+}
+function moveGesture(){
+  var p=plist(); if(!gst)return;
+  if(gst.n===1&&p.length===1){
+    if(vs.s<=1.02) return;              // בגודל רגיל אין מה להזיז
+    vs.tx=gst.tx0+(p[0].x-gst.x0);
+    vs.ty=gst.ty0+(p[0].y-gst.y0);
+  } else if(gst.n===2&&p.length>=2){
+    var C=vCenter(), m=pmid(p[0],p[1]);
+    var ns=clamp(gst.s0*pdist(p[0],p[1])/gst.d0,0.8,8), k=ns/gst.s0;
+    vs.s=ns;
+    // הגדלה סביב הנקודה שבין האצבעות + הזזה לפי תנועת האצבעות
+    vs.tx=(gst.m0.x-C.x)-k*(gst.m0.x-C.x-gst.tx0)+(m.x-gst.m0.x);
+    vs.ty=(gst.m0.y-C.y)-k*(gst.m0.y-C.y-gst.ty0)+(m.y-gst.m0.y);
+  }
+  applyT(false);
+}
+function handleTap(x,y){
+  var now=Date.now();
+  if(now-lastTap.t<320&&Math.abs(x-lastTap.x)<40&&Math.abs(y-lastTap.y)<40){
+    if(vs.s>1.05){vs.s=1;vs.tx=0;vs.ty=0}else zoomAt(2.5,x,y);
+    lastTap.t=0;
+  } else lastTap={t:now,x:x,y:y};
+}
+vw.addEventListener('pointerdown',function(e){
+  try{vw.setPointerCapture(e.pointerId)}catch(err){}
+  ptrs[e.pointerId]={x:e.clientX,y:e.clientY};
+  downInfo=(plist().length===1)?{t:Date.now(),x:e.clientX,y:e.clientY,moved:false}:null;
+  startGesture();
+});
+vw.addEventListener('pointermove',function(e){
+  if(!ptrs[e.pointerId])return;
+  ptrs[e.pointerId]={x:e.clientX,y:e.clientY};
+  if(downInfo&&(Math.abs(e.clientX-downInfo.x)>8||Math.abs(e.clientY-downInfo.y)>8)) downInfo.moved=true;
+  moveGesture();
+});
+function endPtr(e){
+  if(!ptrs[e.pointerId])return;
+  delete ptrs[e.pointerId];
+  if(!plist().length){
+    if(downInfo&&!downInfo.moved&&Date.now()-downInfo.t<300) handleTap(e.clientX,e.clientY);
+    downInfo=null; gst=null; settle();
+  } else startGesture();  // אצבע אחת הורמה — ממשיכים להזיז עם האצבע שנשארה
+}
+vw.addEventListener('pointerup',endPtr);
+vw.addEventListener('pointercancel',endPtr);
+vw.addEventListener('wheel',function(e){
+  e.preventDefault();
+  zoomAt(vs.s*(e.deltaY<0?1.15:1/1.15),e.clientX,e.clientY); settle();
+},{passive:false});
+
+document.getElementById('vbCL').addEventListener('click',function(){closeViewer(false)});
+document.getElementById('vbRL').addEventListener('click',function(){vs.r-=90;vs.tx=0;vs.ty=0;settle()});
+document.getElementById('vbRR').addEventListener('click',function(){vs.r+=90;vs.tx=0;vs.ty=0;settle()});
+document.getElementById('vbSV').addEventListener('click',function(){if(viewId!==null)saveCardToDevice(viewId)});
+document.getElementById('vbSH').addEventListener('click',function(){if(viewId!==null)shareCard(viewId)});
 
 /* ═══════════════════════════════════════
    NOTES
 ═══════════════════════════════════════ */
+function findNSec(id){
+  var b=document.querySelector('.notes-sbtn[data-id="'+id+'"]');
+  return b?b.closest('.notes-sec'):null;
+}
 function openNote(id){
   var s=findNSec(id); if(!s)return;
   s.querySelector('.notes-dsp').style.display='none';
@@ -770,25 +1016,17 @@ function openNote(id){
 }
 function saveNote(id){
   var s=findNSec(id); if(!s)return;
-  var inp=s.querySelector('.notes-inp');
-  var dsp=s.querySelector('.notes-dsp');
+  var inp=s.querySelector('.notes-inp'), dsp=s.querySelector('.notes-dsp');
   var c=gcard(id); if(!c)return;
-  c.note=inp.value.trim();
-  dbPut(c).catch(function(){});
-  inp.style.display='none';
-  s.querySelector('.notes-sbtn').style.display='none';
-  dsp.style.display='block';
-  if(c.note){dsp.textContent=c.note;dsp.classList.remove('enote')}
-  else{dsp.textContent='לחץ להוספת הערה…';dsp.classList.add('enote')}
-  toast('📝 ההערה נשמרה!');
-}
-function findNSec(id){
-  var ss=document.querySelectorAll('.notes-sec');
-  for(var i=0;i<ss.length;i++){
-    var b=ss[i].querySelector('[data-a="snote"]');
-    if(b&&parseInt(b.getAttribute('data-id'))===id)return ss[i];
-  }
-  return null;
+  var old=c.note; c.note=inp.value.trim();
+  dbPut(c).then(function(){
+    inp.style.display='none';
+    s.querySelector('.notes-sbtn').style.display='none';
+    dsp.style.display='block';
+    if(c.note){dsp.textContent=c.note;dsp.classList.remove('enote')}
+    else{dsp.textContent='לחץ להוספת הערה…';dsp.classList.add('enote')}
+    toast('📝 ההערה נשמרה');
+  }).catch(function(err){c.note=old;saveErr(err)});
 }
 
 /* ═══════════════════════════════════════
@@ -812,9 +1050,7 @@ init();
 <script>
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', function() {
-    navigator.serviceWorker.register('./sw.js')
-      .then(function(reg){ console.log('[PWA] Service Worker registered:', reg.scope); })
-      .catch(function(err){ console.log('[PWA] Service Worker registration failed:', err); });
+    navigator.serviceWorker.register('./sw.js').catch(function(err){ console.log('[PWA] SW failed:', err); });
   });
 }
 </script>
