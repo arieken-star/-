@@ -306,7 +306,7 @@ body{font-family:'Heebo','Arial',sans-serif;background:var(--bg);color:var(--tx)
 
 <div class="toast" id="toast"></div>
 <input type="file" id="fileInput" accept="image/*" style="display:none">
-<input type="file" id="backupInput" accept=".json,application/json,text/plain" style="display:none">
+<input type="file" id="backupInput" accept=".json,.txt,application/json,text/plain" style="display:none">
 
 <script>
 /* ═══════════════════════════════════════
@@ -840,15 +840,25 @@ function exportBackup(){
   downloadBlob(backupBlob(),backupName()); markBackup();
   toast('💾 הגיבוי נשמר בתיקיית ההורדות');
 }
+/* Chrome באנדרואיד חוסם שיתוף קבצי .json — לכן קובץ הגיבוי לשיתוף נשמר כ-.txt (התוכן זהה) */
 function shareBackup(){
   if(!cards.length){toast('אין תעודות לגיבוי');return}
   var f;
-  try{f=new File([backupBlob()],backupName(),{type:'application/json'})}catch(e){exportBackup();return}
-  if(navigator.canShare&&navigator.canShare({files:[f]})){
-    navigator.share({files:[f],title:'גיבוי ארנק'}).then(markBackup).catch(function(err){
-      if(err&&err.name!=='AbortError') exportBackup();
-    });
-  } else exportBackup();
+  try{
+    var txt=JSON.stringify({app:'arnak-teudot',version:2,created:new Date().toISOString(),cards:cards});
+    f=new File([txt],backupName().replace(/\.json$/,'.txt'),{type:'text/plain'});
+  }catch(e){exportBackup();return}
+  if(!navigator.share||!(navigator.canShare&&navigator.canShare({files:[f]}))){
+    toast('המכשיר לא מאפשר שיתוף — הגיבוי נשמר בהורדות');
+    exportBackup(); return;
+  }
+  navigator.share({files:[f],title:'גיבוי ארנק'}).then(function(){
+    markBackup(); toast('✅ הגיבוי נשלח');
+  }).catch(function(err){
+    if(err&&err.name==='AbortError') return;   // המשתמש ביטל
+    toast('השיתוף נכשל — הגיבוי נשמר בהורדות');
+    exportBackup();
+  });
 }
 document.getElementById('backupInput').addEventListener('change',function(e){
   var f=e.target.files[0]; e.target.value=''; if(!f)return;
